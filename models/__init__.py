@@ -6,7 +6,7 @@ import os
 # >>> MODELS HERE (START)
 from .user import User
 from .user_vehicle import UserVehicle
-from .vehicle import CreateVehicle, Vehicle
+from .vehicle import Vehicle
 # <<< MODELS HERE (END)
 
 # >>> CREATE DATABASE DIRECTORY (START)
