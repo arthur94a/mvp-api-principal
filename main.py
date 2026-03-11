@@ -4,7 +4,8 @@ from fastapi import FastAPI
 
 from models import create_db_and_tables
 from models import SessionDep
-from models import (User,CreateVehicle,Vehicle)
+from models import (User,Vehicle)
+from schemas.vehicle import CreateVehicle
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
