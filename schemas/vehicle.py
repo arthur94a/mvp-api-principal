@@ -6,6 +6,7 @@ class VehicleType(str, Enum):
     motorcyles = 'motorcyles'
     trucks = 'trucks'
 
-class CreateVehicle(BaseModel):
+class CreateVehicleSchema(BaseModel):
     fipe_code: str
-    vehicle_type: VehicleType
+    type: VehicleType
+    year_code: str

@@ -1,7 +1,10 @@
+from sqlmodel import select
 from fastapi import APIRouter
 import httpx
 from models import SessionDep
-from schemas.vehicle import CreateVehicle
+from models import Vehicle
+from schemas.vehicle import CreateVehicleSchema
+from schemas.base import need_update
 
 vehicle_router = APIRouter()
 
@@ -10,28 +13,52 @@ async def root():
     return {"message": "Hello from Vehicle route"}
 
 
-@vehicle_router.post("/addVehicle", response_model=CreateVehicle)
-def add_vehicle(create_vehicle: CreateVehicle, session: SessionDep) -> CreateVehicle:
-    vehicle_fipe = create_vehicle.fipe_code
-    vehicle_type = create_vehicle.vehicle_type.value
-    print(create_vehicle)
+@vehicle_router.post("/fipe/add", response_model=Vehicle)
+def add_vehicle_by_fipe(create_vehicle: CreateVehicleSchema, session: SessionDep) -> Vehicle:
+    vehicle_fipe_code = create_vehicle.fipe_code
+    vehicle_type = create_vehicle.type.value
+    vehicle_year_code = create_vehicle.year_code
+
+    vehicle = session.get(Vehicle, (vehicle_fipe_code,vehicle_year_code))
+
+    if (vehicle):
+        print("🧙‍♂️ Buscando veículo... 🔎")
+        current_date = vehicle.updated_at
+
+        if not need_update(current_date):
+            print("🧙‍♂️ Este veículo já está na sua garagem ✔️")
+            return vehicle
+        
+        print("🧙‍♂️ Atualizando veículo... ♻️")
 
     response = httpx.get(
-        f"https://fipe.parallelum.com.br/api/v2/{vehicle_type}/{vehicle_fipe}/years"
+        f"https://fipe.parallelum.com.br/api/v2/{vehicle_type}/{vehicle_fipe_code}/years/{vehicle_year_code}"
     )
 
     data = response.json()
+   
+    if not vehicle:
+        print("🧙‍♂️ Criando veículo 🚗")
+        vehicle = Vehicle (
+            id = data["codeFipe"],
+            vehicle_type = vehicle_type,
+            brand = data["brand"],
+            model = data["model"],
+            year = data["modelYear"],
+            year_code = vehicle_year_code,
+            price = data["price"],
+            fuel = data["fuel"]
+        )
 
-    print(data)
+        session.add(vehicle)
 
-    # vehicle = Vehicle(
-    #     id=data["codigoFipe"],
-    #     brand=data["marca"],
-    #     model=data["modelo"]
-    # )
+    else:
+        print("🧙‍♂️ Atualizando valor do veículo 🚗")
+        vehicle.price = data["valor"]
 
-    # session.add(vehicle)
-    # session.commit()
-    # session.refresh(vehicle)
+    session.commit()
+    session.refresh(vehicle)
 
-    return create_vehicle
+    print("🧙‍♂️ Pronto, veículo na garagem ✔️")
+
+    return vehicle

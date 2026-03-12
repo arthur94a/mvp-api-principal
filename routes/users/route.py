@@ -25,3 +25,19 @@ def create_user(user_input: CreateUser, session: SessionDep) -> User:
     session.refresh(db_user)
     
     return db_user
+
+@user_router.post("/test")
+def test_user(session: SessionDep):
+    user = session.get(User, 2)
+
+    if (user) :
+        print(user)
+
+        name = user.name
+        print(name)
+    
+    else:
+        print("Nao encontrado")
+        user = None
+    
+    return user
