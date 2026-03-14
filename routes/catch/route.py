@@ -25,13 +25,13 @@ async def root():
 async def get_fipe_code(session: SessionDep):
     ...
 
-@catch_router.get("/brands/{vehicle_type}") #https://fipe.parallelum.com.br/api/v2/{vehicleType}/brands
-async def get_brands(vehicle_type: str, session: SessionDep):
+@catch_router.get("/brands/{path_vehicle_type}") #https://fipe.parallelum.com.br/api/v2/{vehicleType}/brands
+async def get_brands(path_vehicle_type: str, session: SessionDep):
 
-    await update_brands_if_needed(session, vehicle_type)
+    await update_brands_if_needed(session, path_vehicle_type)
 
     brands = session.exec(
-        select(Brand).where(Brand.type == vehicle_type)
+        select(Brand).where(Brand.vehicle_type == path_vehicle_type)
     ).all()
 
     return brands

@@ -7,9 +7,9 @@ class VehicleType(str, Enum):
     trucks = 'trucks'
 
 class AddBrandSchema(BaseModel):
-    code: str
-    name: str
-    type: VehicleType
+    brand_code: str
+    brand_name: str
+    vehicle_type: VehicleType
 
 class CreateVehicleSchema(BaseModel):
     fipe_code: str

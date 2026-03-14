@@ -1,18 +1,17 @@
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, SQLModel
 from sqlalchemy import UniqueConstraint
-from schemas.base import TimestampModel
 from schemas.vehicle import VehicleType
 
 class Brand(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint(
-            "code",
-            "type",
+            "brand_code",
+            "vehicle_type",
             name="unique_brand"
         ),
     )
 
-    code: str = Field(primary_key=True)
-    name: str
-    type: VehicleType
+    brand_code: str = Field(primary_key=True)
+    brand_name: str
+    vehicle_type: VehicleType
     
