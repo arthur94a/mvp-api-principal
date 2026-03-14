@@ -7,6 +7,10 @@ import os
 from .user import User
 from .user_vehicle import UserVehicle
 from .vehicle import Vehicle
+from .vehicle_price_history import VehiclePriceHistory
+from .brand import Brand
+from .brand_model import BrandModel
+from .cache_control import CacheControl
 # <<< MODELS HERE (END)
 
 # >>> CREATE DATABASE DIRECTORY (START)

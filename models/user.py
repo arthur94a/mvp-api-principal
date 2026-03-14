@@ -1,8 +1,11 @@
 from pydantic import EmailStr
-from typing import List
+from typing import List, TYPE_CHECKING
 from sqlmodel import Field, Relationship
 from schemas.base import TimestampModel
-from models import UserVehicle, Vehicle
+from .user_vehicle import UserVehicle
+
+if TYPE_CHECKING:
+    from .vehicle import Vehicle
 
 class User(TimestampModel, table=True):
     id: int | None = Field(default=None, primary_key=True)

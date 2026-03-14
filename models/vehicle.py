@@ -1,9 +1,12 @@
 from typing import Optional
-from typing import List
+from typing import List, TYPE_CHECKING
 from sqlmodel import Field, Relationship
 from schemas.base import TimestampModel
 from schemas.vehicle import VehicleType
-from models import UserVehicle, User
+from .user_vehicle import UserVehicle
+
+if TYPE_CHECKING:
+    from .user import User
 
 class Vehicle(TimestampModel, table=True):
     id: str = Field(primary_key=True) # FIPE code
@@ -11,9 +14,9 @@ class Vehicle(TimestampModel, table=True):
     year: int
     vehicle_type: VehicleType
     brand: str
-    brand_code: str | None = Field(default=None)
+    brand_code: str = Field(foreign_key="brand.code")
     model: str
-    model_code: Optional[str] = Field(default=None)
+    model_code: str = Field(foreign_key="brandmodel.code")
     price: str
     fuel: Optional[str] = Field(default=None)
 

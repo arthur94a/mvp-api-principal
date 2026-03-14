@@ -2,7 +2,7 @@ from sqlmodel import select
 from fastapi import APIRouter
 import httpx
 from models import SessionDep
-from models import Vehicle
+from models.vehicle import Vehicle
 from schemas.vehicle import CreateVehicleSchema
 from schemas.base import need_update
 

@@ -9,7 +9,7 @@ class VehiclePriceHistory(TimestampModel, Table=True):
             "vehicle_id",
             "reference_month",
             name="unique_vehicle_month"
-        )
+        ),
     )
 
     id: int | None = Field(default=None, primary_key=True)

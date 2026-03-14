@@ -3,8 +3,13 @@ from enum import Enum
 
 class VehicleType(str, Enum):
     car = 'cars'
-    motorcyles = 'motorcyles'
+    motorcycles = 'motorcycles'
     trucks = 'trucks'
+
+class AddBrandSchema(BaseModel):
+    code: str
+    name: str
+    type: VehicleType
 
 class CreateVehicleSchema(BaseModel):
     fipe_code: str

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from models import SessionDep
-from models import User
-from schemas.user import CreateUser
+from models.user import User
+from schemas.user import CreateUserSchema
 
 user_router = APIRouter()
 
@@ -10,7 +10,7 @@ async def root():
     return {"message": "Hello from User route"}
 
 @user_router.post("/create", response_model=User)
-def create_user(user_input: CreateUser, session: SessionDep) -> User:
+def create_user(user_input: CreateUserSchema, session: SessionDep) -> User:
     db_user = User(
         name=user_input.name,
         email=user_input.email,
