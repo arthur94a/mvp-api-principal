@@ -6,7 +6,7 @@ class VehicleType(str, Enum):
     motorcycles = 'motorcycles'
     trucks = 'trucks'
 
-class AddBrandSchema(BaseModel):
+class BrandRead(BaseModel):
     brand_code: str
     brand_name: str
     vehicle_type: VehicleType
