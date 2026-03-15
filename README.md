@@ -29,3 +29,8 @@ source venv/bin/activet
 ```
 venv\Scripts\activet
 ```
+
+# Run server
+```
+uvicorn main:app --reload
+```

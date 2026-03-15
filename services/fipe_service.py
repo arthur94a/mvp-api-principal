@@ -55,45 +55,53 @@ async def update_brands_if_needed(session, input_vehicle_type):
 
 """"
 UPDATE BRANDS MODELS IF NEEDED
+Each brand has own models. They are updated in DB by brand
 """
 async def update_brand_models_if_needed(session, input_vehicle_type, input_brand_code):
     query = select(BrandModel).where(BrandModel.vehicle_type == input_vehicle_type, BrandModel.brand_code == input_brand_code)
     models = session.exec(query).all()
-    first = session.exec(query).first()
 
+    # se existir e ainda não passou 10 dias
     if models:
-        print("Tabéla de Modelos aqui")
-        print(first)
-        return
-
-    else:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(MODELS_URL.format(
-                param_vehicle_type=input_vehicle_type, 
-                param_brand_code=input_brand_code
-            ))
-            data = response.json()
-        
-        existing_codes = {
-            code for code in session.exec(
-                select(BrandModel.brand_code).where(Brand.brand_code == input_brand_code)
-            )
-        }
-        
-        new_brand_models = [
-            BrandModel(
-                model_code = item_model["code"],
-                model_name = item_model["name"],
-                brand_code = input_brand_code,
-                vehicle_type = input_vehicle_type
-            )
-            for item_model in data
-            if item_model["code"] not in existing_codes
-        ]
-
-        session.add_all(new_brand_models)
-        print(data)
+        first = models[0]
+        if datetime.utcnow() - first.updated_at < timedelta(days=10):
+            print("🧙‍♂️ Tabela atualizada recentemente.")
+            return
     
+    # se não existir ou estiver desatualizado
+    async with httpx.AsyncClient() as client:
+        print("🧙‍♂️ Ooh, Solicitando dados da API 🐣")
+        response = await client.get(
+            MODELS_URL.format(
+                param_vehicle_type=input_vehicle_type,
+                param_brand_code=input_brand_code
+            )
+        )
+
+    data = response.json()
+
+    print("🧙‍♂️ Validando os dados existentes")
+    existing_codes = {
+        code for code in session.exec(
+            select(BrandModel.model_code).where(
+                BrandModel.brand_code == input_brand_code
+            )
+        )
+    }
+
+    new_models = [
+        BrandModel(
+            model_code=item["code"],
+            model_name=item["name"],
+            brand_code=input_brand_code,
+            vehicle_type=input_vehicle_type,
+            updated_at=datetime.utcnow()
+        )
+        for item in data
+        if item["code"] not in existing_codes
+    ]
+
+    session.add_all(new_models)
     session.commit()
 
     return
