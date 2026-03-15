@@ -10,6 +10,7 @@ from .vehicle import Vehicle
 from .vehicle_price_history import VehiclePriceHistory
 from .brand import Brand
 from .brand_model import BrandModel
+from .brand_model_year import BrandModelYear
 from .cache_control import CacheControl
 # <<< MODELS HERE (END)
 

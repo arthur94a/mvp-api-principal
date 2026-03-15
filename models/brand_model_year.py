@@ -1,8 +1,9 @@
-from sqlmodel import Field, SQLModel
+from schemas.base import TimestampModel
+from sqlmodel import Field
 from sqlalchemy import UniqueConstraint
 from schemas.vehicle import VehicleType
 
-class BrandModelYear(SQLModel, table=True):
+class BrandModelYear(TimestampModel, table=True):
     __table_args__ = (
         UniqueConstraint(
             "year_code",

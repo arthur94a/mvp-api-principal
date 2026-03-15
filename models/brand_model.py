@@ -1,5 +1,5 @@
 from schemas.base import TimestampModel
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field
 from sqlalchemy import UniqueConstraint
 from schemas.vehicle import VehicleType
 
