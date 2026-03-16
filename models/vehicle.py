@@ -14,9 +14,9 @@ class Vehicle(TimestampModel, table=True):
     year: int
     vehicle_type: VehicleType
     brand: str
-    brand_code: str = Field(foreign_key="brand.brand_code")
+    brand_code: Optional[int] = Field(default=None, foreign_key="brand.brand_code")
     model: str
-    model_code: str = Field(foreign_key="brandmodel.model_code")
+    model_code: Optional[str] = Field(default=None, foreign_key="brandmodel.model_code")
     price: str
     fuel: Optional[str] = Field(default=None)
 

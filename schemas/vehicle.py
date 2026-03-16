@@ -7,11 +7,17 @@ class VehicleType(str, Enum):
     trucks = 'trucks'
 
 class BrandRead(BaseModel):
-    brand_code: str
+    brand_code: int
     brand_name: str
     vehicle_type: VehicleType
 
 class CreateVehicleSchema(BaseModel):
-    fipe_code: str
-    type: VehicleType
+    brand_code: int
+    model_code: str
     year_code: str
+    vehicle_type: VehicleType
+
+class CreateVehicleByFipeSchema(BaseModel):
+    fipe_code: str
+    year_code: str
+    vehicle_type: VehicleType

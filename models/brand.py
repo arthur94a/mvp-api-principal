@@ -11,7 +11,7 @@ class Brand(SQLModel, table=True):
         ),
     )
 
-    brand_code: str = Field(primary_key=True)
+    brand_code: int = Field(primary_key=True)
     brand_name: str
     vehicle_type: VehicleType
     
