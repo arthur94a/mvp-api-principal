@@ -23,7 +23,7 @@ async def update_brands(session, input_vehicle_type):
         return
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(BRANDS_URL.format(param_vehicle_type=input_vehicle_type))
+        response = await client.get(BRANDS_URL.format(param_vehicle_type=input_vehicle_type.value))
         data = response.json()
 
     existing_codes = {
@@ -33,7 +33,7 @@ async def update_brands(session, input_vehicle_type):
     }
 
     new_brands = [
-        Brand(brand_code=b["code"], brand_name=b["name"], vehicle_type=input_vehicle_type)
+        Brand(brand_code=int(b["code"]), brand_name=b["name"], vehicle_type=input_vehicle_type)
         for b in data
         if b["code"] not in existing_codes
     ]
@@ -77,7 +77,7 @@ async def update_brand_models(session, input_vehicle_type, input_brand_code):
         print("🧙‍♂️ Ooh, Solicitando modelos dados da API 🐣")
         response = await client.get(
             MODELS_URL.format(
-                param_vehicle_type=input_vehicle_type,
+                param_vehicle_type=input_vehicle_type.value,
                 param_brand_code=input_brand_code
             )
         )
@@ -97,7 +97,7 @@ async def update_brand_models(session, input_vehicle_type, input_brand_code):
         BrandModel(
             model_code=item["code"],
             model_name=item["name"],
-            brand_code=input_brand_code,
+            brand_code=int(input_brand_code),
             vehicle_type=input_vehicle_type,
             updated_at=datetime.utcnow()
         )
@@ -142,7 +142,7 @@ async def update_brand_model_years(
         print("🧙‍♂️ Ooh, Solicitando anos dados da API 🐣")
         response = await client.get(
             YEARS_URL.format(
-                param_vehicle_type=input_vehicle_type,
+                param_vehicle_type=input_vehicle_type.value,
                 param_brand_code=input_brand_code,
                 param_model_code=input_model_code
             )
@@ -165,7 +165,7 @@ async def update_brand_model_years(
             year_code=item['code'],
             year_name=item['name'],
             model_code=input_model_code,
-            brand_code=input_brand_code,
+            brand_code=int(input_brand_code),
             vehicle_type=input_vehicle_type,
             updated_at=datetime.utcnow()
         )

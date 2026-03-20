@@ -1,7 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from sqlmodel import select
+from utils.security import hash_password
 from models import SessionDep
 from models.user import User
-from schemas.user import CreateUserSchema
+from models.vehicle import Vehicle
+from schemas.user import CreateUserSchema, UserVehicleSchema, UpdatePasswordSchema
+from models import UserVehicle
+from utils.security import verify_password, hash_password
+from typing import List
 
 user_router = APIRouter()
 
@@ -9,35 +15,131 @@ user_router = APIRouter()
 async def root():
     return {"message": "Hello from User route"}
 
+
 @user_router.post("/create", response_model=User)
 def create_user(user_input: CreateUserSchema, session: SessionDep) -> User:
+    print("🧙‍♂️ Criando um novo user.")
+
     db_user = User(
         name=user_input.name,
         email=user_input.email,
-        password_hash=user_input.password # Aqui você linka os nomes diferentes
+        password_hash=hash_password(user_input.password)  # 🔐 HASH AQUI
     )
-    
-    # 2. Adicionar ao banco
+
     session.add(db_user)
     session.commit()
-    
-    # 3. Atualizar o objeto com os dados do banco (como o ID gerado)
     session.refresh(db_user)
-    
+
+    print("🧙‍♂️ Usuário adicionado!")
+
     return db_user
 
-@user_router.post("/test")
-def test_user(session: SessionDep):
-    user = session.get(User, 2)
+# 🔐 Atualizar senha
+@user_router.put("/password/update", response_model=User)
+def update_password(data: UpdatePasswordSchema, session: SessionDep):
 
-    if (user) :
-        print(user)
+    user = session.get(User, data.user_id)
 
-        name = user.name
-        print(name)
-    
-    else:
-        print("Nao encontrado")
-        user = None
-    
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # 🔐 Verifica hash corretamente
+    if not verify_password(data.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Senha atual incorreta")
+
+    # 🔐 Nova senha com hash
+    user.password_hash = hash_password(data.new_password)
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
     return user
+
+
+# 💀 Deletar usuário
+@user_router.delete("/delete", response_model=User)
+def delete_user(user_id: int, session: SessionDep):
+
+    user = session.get(User, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # 🔥 Remove vínculos com veículos
+    statement = select(UserVehicle).where(UserVehicle.user_id == user_id)
+    user_vehicles = session.exec(statement).all()
+
+    for uv in user_vehicles:
+        session.delete(uv)
+
+    # ❌ Remove usuário
+    session.delete(user)
+    session.commit()
+
+    print("💀 Conta deletada.")
+
+    return user
+
+@user_router.post("/vehicle/add", response_model=UserVehicle)
+def add_vehicle(user_vehicle: UserVehicleSchema, session: SessionDep):
+
+    print("🧙‍♂️ Adicionando veículo na sua garagem... 🚗")
+
+    # Verifica se já existe (evita duplicidade na PK composta)
+    has_user_vehicle = session.get(
+        UserVehicle,
+        (user_vehicle.user_id, user_vehicle.vehicle_id, user_vehicle.year_code)
+    )
+
+    if has_user_vehicle:
+        print("🚗 Veículo já esta na sua garagem.")
+        raise HTTPException(status_code=409, detail="Veículo já existe")
+    
+    search_vehicle = session.get(Vehicle, (user_vehicle.vehicle_id, user_vehicle.year_code))
+
+    if not search_vehicle:
+        print("🚗 Veículo não encontrado.")
+        raise HTTPException(status_code=404, detail="Veículo não encontrado")
+
+    # Cria o vínculo
+    new_vehicle = UserVehicle(
+        user_id=user_vehicle.user_id,
+        vehicle_id=user_vehicle.vehicle_id,
+        year_code=user_vehicle.year_code
+    )
+
+    session.add(new_vehicle)
+    session.commit()
+    session.refresh(new_vehicle)
+
+    print("🚗 Veículo adicionado à garagem.")
+
+    return new_vehicle
+
+@user_router.delete("/vehicle/remove", response_model=UserVehicle)
+def remove_vehicle(user_vehicle: UserVehicleSchema , session: SessionDep):
+    vehicle = session.get(UserVehicle, (user_vehicle.user_id, user_vehicle.vehicle_id))
+
+    if not vehicle:
+        return
+
+    session.delete(vehicle)
+    session.commit()
+
+    print("🧙‍♂️ Seu carro foi removido da garagem pessoal.")
+
+    return
+
+@user_router.get("/vehicles", response_model=List[Vehicle])
+def list_user_vehicles(user_id: int, session: SessionDep):
+
+    user = session.get(User, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # 🔥 pega os veículos através do relacionamento
+    vehicles = [uv.vehicle for uv in user.vehicles]
+
+    return vehicles
