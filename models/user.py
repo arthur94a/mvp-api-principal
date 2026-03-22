@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class User(TimestampModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
-    email: EmailStr
+    email: EmailStr = Field(index=True, unique=True)
     password_hash: str
 
     vehicles: List["Vehicle"] = Relationship(

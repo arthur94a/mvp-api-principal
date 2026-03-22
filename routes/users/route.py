@@ -4,7 +4,7 @@ from utils.security import hash_password
 from models import SessionDep
 from models.user import User
 from models.vehicle import Vehicle
-from schemas.user import CreateUserSchema, UserVehicleSchema, UpdatePasswordSchema
+from schemas.user import CreateUserSchema, UserVehicleSchema, UpdatePasswordSchema, PublicUserSchema, UserLoginSchema, ResponseUserLoginSchema
 from models import UserVehicle
 from utils.security import verify_password, hash_password
 from typing import List
@@ -16,26 +16,54 @@ async def root():
     return {"message": "Hello from User route"}
 
 
-@user_router.post("/create", response_model=User)
+@user_router.post("/create", status_code=201, response_model=PublicUserSchema)
 def create_user(user_input: CreateUserSchema, session: SessionDep) -> User:
     print("🧙‍♂️ Criando um novo user.")
 
-    db_user = User(
+    user = User(
         name=user_input.name,
         email=user_input.email,
         password_hash=hash_password(user_input.password)  # 🔐 HASH AQUI
     )
 
-    session.add(db_user)
+    session.add(user)
     session.commit()
-    session.refresh(db_user)
+    session.refresh(user)
 
     print("🧙‍♂️ Usuário adicionado!")
 
-    return db_user
+    return user
+
+@user_router.post("/login", status_code=200, response_model=ResponseUserLoginSchema)
+def login_user(user_input: UserLoginSchema, session: SessionDep):
+    email = user_input.email
+    password = user_input.password
+
+    query = select(User).where(User.email == email)
+    session_user = session.exec(query).first()
+
+    if not session_user or not verify_password(password, session_user.password_hash):
+        raise HTTPException(
+            status_code=400, 
+            detail={
+                "message": "Email ou senha inválidos",
+                "status":"fail"
+            }
+        )
+    
+    return {
+        "message": "Login realizado com sucesso",
+        "status":"success",
+        "data": {
+            "id": session_user.id,
+            "email": session_user.email,
+            "name": session_user.name
+        }
+    }
+
 
 # 🔐 Atualizar senha
-@user_router.put("/password/update", response_model=User)
+@user_router.put("/password/update", status_code=204)
 def update_password(data: UpdatePasswordSchema, session: SessionDep):
 
     user = session.get(User, data.user_id)
@@ -54,11 +82,11 @@ def update_password(data: UpdatePasswordSchema, session: SessionDep):
     session.commit()
     session.refresh(user)
 
-    return user
+    return
 
 
 # 💀 Deletar usuário
-@user_router.delete("/delete", response_model=User)
+@user_router.delete("/delete", status_code=204)
 def delete_user(user_id: int, session: SessionDep):
 
     user = session.get(User, user_id)
@@ -78,10 +106,9 @@ def delete_user(user_id: int, session: SessionDep):
     session.commit()
 
     print("💀 Conta deletada.")
+    return
 
-    return user
-
-@user_router.post("/vehicle/add", response_model=UserVehicle)
+@user_router.post("/vehicle/add", status_code=201, response_model=UserVehicle)
 def add_vehicle(user_vehicle: UserVehicleSchema, session: SessionDep):
 
     print("🧙‍♂️ Adicionando veículo na sua garagem... 🚗")
@@ -117,7 +144,7 @@ def add_vehicle(user_vehicle: UserVehicleSchema, session: SessionDep):
 
     return new_vehicle
 
-@user_router.delete("/vehicle/remove", response_model=UserVehicle)
+@user_router.delete("/vehicle/remove", status_code=204)
 def remove_vehicle(user_vehicle: UserVehicleSchema , session: SessionDep):
     vehicle = session.get(UserVehicle, (user_vehicle.user_id, user_vehicle.vehicle_id))
 
@@ -131,7 +158,7 @@ def remove_vehicle(user_vehicle: UserVehicleSchema , session: SessionDep):
 
     return
 
-@user_router.get("/vehicles", response_model=List[Vehicle])
+@user_router.get("/vehicles", status_code=200, response_model=List[Vehicle])
 def list_user_vehicles(user_id: int, session: SessionDep):
 
     user = session.get(User, user_id)

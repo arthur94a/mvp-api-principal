@@ -8,7 +8,7 @@ from schemas.base import need_update
 
 vehicle_router = APIRouter()
 
-@vehicle_router.post("/add", response_model=Vehicle)
+@vehicle_router.post("/add", status_code=201, response_model=Vehicle)
 def add_vehicle(
     create_vehicle: CreateVehicleSchema,
     session: SessionDep
@@ -87,7 +87,7 @@ def add_vehicle(
     return vehicle_to_return
 
 
-@vehicle_router.post("/fipe/add", response_model=Vehicle)
+@vehicle_router.post("/fipe/add", status_code=201, response_model=Vehicle)
 def add_vehicle_by_fipe(
     create_vehicle: CreateVehicleByFipeSchema,
     session: SessionDep
