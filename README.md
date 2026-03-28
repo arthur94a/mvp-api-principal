@@ -23,7 +23,7 @@ virtualenv venv
 ## Ativar virtualização 
 ### Linux/Mac
 ```
-source venv/bin/activet
+source venv/bin/activate
 ```
 ### Windows
 ```
