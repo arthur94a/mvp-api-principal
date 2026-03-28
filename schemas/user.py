@@ -8,6 +8,20 @@ class CreateUserSchema(BaseModel):
     email: EmailStr
     password: Password
 
+class PublicUserSchema(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+
+class UserLoginSchema(BaseModel):
+    email: EmailStr
+    password: Password
+
+class ResponseUserLoginSchema(BaseModel):
+    message: str
+    status: str
+    data: PublicUserSchema
+
 class UpdatePasswordSchema(BaseModel):
     user_id: int
     current_password: Password
