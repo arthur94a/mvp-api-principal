@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
 import httpx
 from sqlmodel import select
-from models import Brand, BrandModel, BrandModelYear
+from models import Brand, BrandModel, BrandModelYear, Vehicle
 from models.cache_control import CacheControl
 
 FIPE_URL = "https://fipe.parallelum.com.br/api/v2/"
 BRANDS_URL = FIPE_URL + "{param_vehicle_type}/brands/"
 MODELS_URL = BRANDS_URL + "{param_brand_code}/models/"
 YEARS_URL = MODELS_URL + "{param_model_code}/years/"
+VEHICLE_URL = YEARS_URL + "{param_year_code}"
 
 
 """"
@@ -175,5 +176,89 @@ async def update_brand_model_years(
 
     session.add_all(new_years)
     session.commit()
+
+    return
+
+"""
+UPDATE VEHICLE IF NEEDED
+"""
+async def update_vehicle(
+    session,
+    input_vehicle_type,
+    input_brand_code,
+    input_model_code,
+    input_year_code
+):
+    query = select(Vehicle).where(
+        Vehicle.vehicle_type == input_vehicle_type,
+        Vehicle.brand_code == input_brand_code,
+        Vehicle.model_code == input_model_code,
+        Vehicle.year_code == input_year_code
+    )
+
+    vehicle = session.exec(query).first()
+
+    # cache
+    if (
+        vehicle
+        and vehicle.updated_at
+        and datetime.utcnow() - vehicle.updated_at < timedelta(days=10)
+    ):
+        print("🧙‍♂️ Tabela atualizada recentemente.")
+        return
+
+    # API
+    async with httpx.AsyncClient() as client:
+        print("🧙‍♂️ Solicitando dados da API 🐣")
+        response = await client.get(
+            VEHICLE_URL.format(
+                param_vehicle_type=input_vehicle_type.value,
+                param_brand_code=input_brand_code,
+                param_model_code=input_model_code,
+                param_year_code=input_year_code
+            ),
+            timeout=10.0
+        )
+
+    try:
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        print("🧙‍♂️ Erro na API:", e)
+        return
+
+    if vehicle:
+        print("🧙‍♂️ Atualizando veículo existente.")
+        # update
+        vehicle.year = int(data.get('modelYear', 0))
+        vehicle.brand = data.get('brand')
+        vehicle.model = data.get('model')
+        vehicle.price = data.get('price')
+        vehicle.fuel = data.get('fuel')
+        vehicle.updated_at = datetime.utcnow()
+
+        db_obj = vehicle
+
+    else:
+        print("🧙‍♂️ Criando novo veículo. 🚗")
+        # create
+        db_obj = Vehicle(
+            id=data.get('codeFipe'),
+            year_code=input_year_code,
+            year=int(data.get('modelYear', 0)),
+            vehicle_type=input_vehicle_type,
+            brand=data.get('brand'),
+            brand_code=int(input_brand_code),
+            model=data.get('model'),
+            model_code=input_model_code,
+            price=data.get('price'),
+            fuel=data.get('fuel'),
+            updated_at=datetime.utcnow()
+        )
+
+        session.add(db_obj)
+
+    session.commit()
+    session.refresh(db_obj)
 
     return
