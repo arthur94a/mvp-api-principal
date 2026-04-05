@@ -32,7 +32,7 @@ async def get_brand_models(path_vehicle_type: VehicleType, path_brand_code: int,
     
     return brand_models
 
-@catch_router.get("/{path_vehicle_type}/brands/{path_brand_code}/models/{path_model_code}", status_code=200, response_model=List[BrandModelYear]) #https://fipe.parallelum.com.br/api/v2/{vehicleType}/brands/{brandId}/models/{modelId}/years
+@catch_router.get("/{path_vehicle_type}/brands/{path_brand_code}/models/{path_model_code}/years/", status_code=200, response_model=List[BrandModelYear]) #https://fipe.parallelum.com.br/api/v2/{vehicleType}/brands/{brandId}/models/{modelId}/years
 async def get_brand_model_years(path_vehicle_type : VehicleType, path_brand_code: int, path_model_code: str, session: SessionDep):
 
     await update_brand_model_years(session, path_vehicle_type, path_brand_code, path_model_code)

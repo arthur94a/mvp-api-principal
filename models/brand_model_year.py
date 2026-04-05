@@ -17,6 +17,6 @@ class BrandModelYear(TimestampModel, table=True):
     year_code: str = Field(primary_key=True)
     year_name: str
     model_code: str = Field(foreign_key="brandmodel.model_code")
-    brand_code: int = Field(foreign_key="brand.brand_code")
+    brand_code: int = Field(foreign_key="brandmodel.brand_code")
     vehicle_type: VehicleType
     
