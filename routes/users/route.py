@@ -86,7 +86,7 @@ def update_password(data: UpdatePasswordSchema, session: SessionDep):
 
 
 # 💀 Deletar usuário
-@user_router.delete("/delete", status_code=204)
+@user_router.delete("/delete/{user_id}", status_code=204)
 def delete_user(user_id: int, session: SessionDep):
 
     user = session.get(User, user_id)
