@@ -146,7 +146,7 @@ def add_vehicle(user_vehicle: UserVehicleSchema, session: SessionDep):
 
 @user_router.delete("/vehicle/remove", status_code=204)
 def remove_vehicle(user_vehicle: UserVehicleSchema , session: SessionDep):
-    vehicle = session.get(UserVehicle, (user_vehicle.user_id, user_vehicle.vehicle_id))
+    vehicle = session.get(UserVehicle, (user_vehicle.user_id, user_vehicle.vehicle_id, user_vehicle.year_code))
 
     if not vehicle:
         return
@@ -157,6 +157,20 @@ def remove_vehicle(user_vehicle: UserVehicleSchema , session: SessionDep):
     print("🧙‍♂️ Seu carro foi removido da garagem pessoal.")
 
     return
+
+@user_router.get("/vehicle", status_code=200, response_model=Vehicle)
+def get_user_vehicle(
+    user_id: int,
+    vehicle_id: str,
+    year_code: str,
+    session: SessionDep
+) -> Vehicle:
+    vehicle = session.get(UserVehicle, (user_id, vehicle_id, year_code))
+
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Veículo não encontrado")
+
+    return vehicle
 
 @user_router.get("/vehicles", status_code=200, response_model=List[Vehicle])
 def list_user_vehicles(user_id: int, session: SessionDep):
