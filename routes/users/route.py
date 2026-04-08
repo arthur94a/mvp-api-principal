@@ -158,14 +158,17 @@ def remove_vehicle(user_vehicle: UserVehicleSchema , session: SessionDep):
 
     return
 
-@user_router.get("/vehicle", status_code=200, response_model=Vehicle)
+@user_router.get("/vehicle", status_code=200)
 def get_user_vehicle(
     user_id: int,
     vehicle_id: str,
     year_code: str,
     session: SessionDep
-) -> Vehicle:
+) -> UserVehicle:
     vehicle = session.get(UserVehicle, (user_id, vehicle_id, year_code))
+
+    print("🧙‍♂️ Buscando veículo na garagem pessoal... 🔍")
+    print(vehicle)
 
     if not vehicle:
         raise HTTPException(status_code=404, detail="Veículo não encontrado")
