@@ -175,15 +175,19 @@ def get_user_vehicle(
 
     return vehicle
 
-@user_router.get("/vehicles", status_code=200, response_model=List[Vehicle])
-def list_user_vehicles(user_id: int, session: SessionDep):
+@user_router.get("/vehicles", status_code=200)
+def list_user_vehicles(user_id: int, session: SessionDep, response_model=List[Vehicle]) -> List[Vehicle]:
 
     user = session.get(User, user_id)
 
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    # 🔥 pega os veículos através do relacionamento
-    vehicles = [uv.vehicle for uv in user.vehicles]
+    print("🧙‍♂️ Listando veículos da garagem pessoal... 🔍")
 
-    return vehicles
+    vehicles_list = []
+
+    for vehicle in user.vehicles:
+        vehicles_list.append(vehicle)
+
+    return vehicles_list
