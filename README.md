@@ -88,3 +88,8 @@ Documentação automática:
 
 - O backend está configurado para aceitar requisições do frontend em http://localhost:5173.
 - Certifique-se de manter a pasta database acessível para persistência local dos dados.
+
+
+## Fluxograma
+
+![alt text](image.png)
